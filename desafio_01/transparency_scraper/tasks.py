@@ -168,15 +168,33 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                                         headers.append(header_cells.nth(h).inner_text().strip())
 
                                     rows_data = []
-                                    body_rows = table.locator("tbody tr")
-                                    for r in range(body_rows.count()):
-                                        row = body_rows.nth(r)
-                                        cells = row.locator("td")
-                                        row_dict = {}
-                                        for c in range(cells.count()):
-                                            key = headers[c] if c < len(headers) else f"coluna_{c+1}"
-                                            row_dict[key] = cells.nth(c).inner_text().strip()
-                                        rows_data.append(row_dict)
+
+                                    while True:
+                                        body_rows = table.locator("tbody tr")
+                                        row_count = body_rows.count()
+
+                                        for r in range(row_count):
+                                            row = body_rows.nth(r)
+                                            cells = row.locator("td")
+                                            row_dict = {}
+                                            for c in range(cells.count()):
+                                                key = headers[c] if c < len(headers) else f"coluna_{c+1}"
+                                                row_dict[key] = cells.nth(c).inner_text().strip()
+                                            rows_data.append(row_dict)
+
+                                        next_button = detail_page.locator("#tabelaDetalheValoresSacados_paginate .paginate_button.next button")
+
+                                        if not next_button.count():
+                                            break
+
+                                        next_button_parent = detail_page.locator("#tabelaDetalheValoresSacados_paginate .paginate_button.next")
+                                        is_disabled = "disabled" in next_button_parent.get_attribute("class")
+                                        
+                                        if is_disabled:
+                                            break
+
+                                        next_button.click()
+                                        detail_page.wait_for_timeout(random.uniform(1000, 2000))
 
                                     detailed_data.append({
                                         "tabela": caption,
