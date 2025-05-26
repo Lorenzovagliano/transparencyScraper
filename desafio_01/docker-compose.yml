@@ -27,7 +27,7 @@ services:
   worker:
     build: .
     container_name: myapp_worker
-    command: poetry run celery -A gov_scraper worker -l info -P solo
+    command: poetry run celery -A gov_scraper worker -l info
     volumes:
       - .:/app
     environment:
