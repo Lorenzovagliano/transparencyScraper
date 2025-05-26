@@ -1,0 +1,37 @@
+services:
+  # Redis service
+  - type: redis
+    name: myapp-redis
+    plan: starter
+    
+  # Web application service
+  - type: web
+    name: myapp-web
+    runtime: docker
+    buildCommand: poetry install
+    startCommand: poetry run python manage.py runserver 0.0.0.0:8000
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: myapp-redis
+          property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: gov_scraper.settings
+    dockerfilePath: ./Dockerfile
+    
+  # Background worker service
+  - type: worker
+    name: myapp-worker
+    runtime: docker
+    buildCommand: poetry install
+    startCommand: poetry run celery -A gov_scraper worker -l info -P solo
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: myapp-redis
+          property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: gov_scraper.settings
+    dockerfilePath: ./Dockerfile
