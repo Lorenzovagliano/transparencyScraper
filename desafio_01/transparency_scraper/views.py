@@ -5,6 +5,7 @@ from rest_framework import status
 from .serializers import ScrapeRequestSerializer
 from .tasks import scrape_portal_data
 from celery.result import AsyncResult
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,10 @@ class ScrapePersonAPIView(APIView):
 
                 if task.state == 'SUCCESS':
                     logger.info(f"Task {task.id} completed successfully. Result: {task_result}")
-                    return Response(task_result, status=status.HTTP_200_OK)
+                    return Response(
+                        {"task_id": task.id, "timestamp": datetime.now().isoformat(), "result": task_result},
+                        status=status.HTTP_200_OK
+                    )
                 else:
                     logger.error(f"Task {task.id} failed or had an unexpected state: {task.state}. Result: {task_result}")
                     return Response(
