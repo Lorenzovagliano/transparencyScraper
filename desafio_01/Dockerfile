@@ -7,6 +7,7 @@ ENV POETRY_HOME="/opt/poetry"
 ENV POETRY_VIRTUALENVS_CREATE=false
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
@@ -15,7 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcups2 libdrm2 libgbm1 libgtk-3-0 libasound2 libx11-6 libxcomposite1 \
     libxdamage1 libxext6 libxfixes3 libxrandr2 libxrender1 \
     xvfb \
-    redis-server \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
@@ -29,9 +29,5 @@ RUN poetry install --no-interaction --no-ansi --no-dev
 RUN poetry run playwright install --with-deps
 
 COPY . .
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
 
-EXPOSE 8000 6379
-
-CMD ["/start.sh"]
+EXPOSE 8000
