@@ -13,7 +13,7 @@ class ScrapePersonAPIView(APIView):
         serializer = ScrapeRequestSerializer(data=request.data)
         if serializer.is_valid():
             identifier = serializer.validated_data['identifier']
-            search_filter = serializer.validated_data.get('search_filter') # It's optional
+            search_filter = serializer.validated_data.get('search_filter')
 
             logger.info(f"API received request for identifier: {identifier}, filter: {search_filter}")
 

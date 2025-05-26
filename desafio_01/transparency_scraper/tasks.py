@@ -4,8 +4,14 @@ import random
 import time
 from celery import shared_task
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+import unicodedata
 
 logger = logging.getLogger(__name__)
+
+def normalize_string(text):
+    normalized_text = unicodedata.normalize('NFKD', text)
+    ascii_text = normalized_text.encode('ascii', 'ignore').decode('utf-8')
+    return ascii_text.casefold()
 
 @shared_task(bind=True, max_retries=1)
 def scrape_portal_data(self, identifier: str, search_filter: str = None):
@@ -81,6 +87,36 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
 
             page.locator('#button-consulta-pessoa-fisica').click(timeout=max_interaction_timeout)
             time.sleep(random.uniform(2, 4))
+
+            if search_filter:
+                refine_button = page.locator("button.header:has-text('Refine a Busca')")
+                if refine_button.count():
+                    refine_button.click()
+                    page.wait_for_timeout(500)
+                time.sleep(random.uniform(2, 4))
+
+                filter_actions = {
+                    normalize_string("Servidores e Pensionistas"): lambda: page.locator("#box-busca-refinada").get_by_text("Servidores e Pensionistas").click(),
+                    normalize_string("Beneficiário de Programa Social"): lambda: page.locator("#box-busca-refinada").get_by_text("Beneficiário de Programa").click(),
+                    normalize_string("Portador de cartão de pagamento do Governo Federal"): lambda: page.get_by_text("Portador de cartão de").click(),
+                    normalize_string("Portador de cartão da defesa civil"): lambda: page.get_by_text("Portador de cartão da defesa").click(),
+                    normalize_string("Possui sanção vigente"): lambda: page.get_by_text("Possui sanção vigente").click(),
+                    normalize_string("Ocupante de imóvel funcional"): lambda: page.get_by_text("Ocupante de imóvel funcional").click(),
+                    normalize_string("Possui Contrato com o Governo Federal"): lambda: page.get_by_text("Possui Contrato com o Governo").click(),
+                    normalize_string("Favorecido de recurso público"): lambda: page.locator("#box-busca-refinada").get_by_text("Favorecido de recurso público").click(),
+                    normalize_string("Emitente NFe"): lambda: page.get_by_text("Emitente NFe").click(),
+                }
+
+                normalized_search_filter = normalize_string(search_filter)
+                action_to_perform = filter_actions.get(normalized_search_filter)
+
+                if action_to_perform:
+                    logger.info(f"Applying filter: {normalized_search_filter}")
+                    action_to_perform()
+                else:
+                    logger.warning(f"No action defined for normalized search_filter: '{normalized_search_filter}' (original: '{search_filter}')")
+
+                time.sleep(random.uniform(2, 4))
 
             logger.info(f"Searching for: '{identifier}'")
             search_box = page.get_by_role('searchbox', name='Busque por Nome, Nis ou CPF (')
