@@ -113,75 +113,85 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
             page.locator("#tabela-visao-geral-sancoes tbody tr").first.wait_for(timeout=existence_check_timeout)
 
             accordion_data = {}
-            accordion_sections = page.locator("div#accordion1 div.content div.box-ficha__resultados")
-            count = accordion_sections.count()
 
-            for i in range(count):
-                section = accordion_sections.nth(i)
-                title = section.locator("strong").first.inner_text().strip()
+            benefit_blocks = page.locator("div#accordion1 div.br-table")
+            block_count = benefit_blocks.count()
+
+            for i in range(block_count):
+                block = benefit_blocks.nth(i)
+
+                title_el = block.locator("strong")
+                if not title_el.count():
+                    continue
+
+                title = title_el.first.inner_text().strip()
                 benefit_data = []
 
-                rows = section.locator("table tbody tr")
+                table = block.locator("table")
+                if not table.count():
+                    continue
+
+                rows = table.locator("tbody tr")
                 row_count = rows.count()
 
-            for j in range(row_count):
-                row = rows.nth(j)
-                columns = row.locator("td")
-                if columns.count() >= 4:
-                    valor = columns.nth(3).inner_text().strip()
+                for j in range(row_count):
+                    row = rows.nth(j)
+                    columns = row.locator("td")
+                    if columns.count() >= 4:
+                        valor = columns.nth(3).inner_text().strip()
 
-                    detail_link = columns.nth(0).locator("a")
-                    if detail_link.count() > 0:
-                        detail_url = detail_link.get_attribute("href")
-                        if detail_url:
-                            logger.info(f"Navigating to detail page: {detail_url}")
-                            detail_page = context.new_page()
-                            detail_page.add_init_script(stealth_script)
-                            time.sleep(random.uniform(2, 5))
-                            detail_page.goto("https://portaldatransparencia.gov.br" + detail_url, timeout=max_interaction_timeout)
-                            
-                            time.sleep(random.uniform(3, 6))
+                        detail_link = columns.nth(0).locator("a")
+                        if detail_link.count() > 0:
+                            detail_url = detail_link.get_attribute("href")
+                            if detail_url:
+                                logger.info(f"Navigating to detail page: {detail_url}")
+                                detail_page = context.new_page()
+                                detail_page.add_init_script(stealth_script)
+                                time.sleep(random.uniform(2, 5))
+                                detail_page.goto("https://portaldatransparencia.gov.br" + detail_url, timeout=max_interaction_timeout)
+                                time.sleep(random.uniform(3, 6))
 
-                            logger.info("Scraping detailed data tables from .dados-detalhados")
-                            detailed_data = []
+                                logger.info("Scraping detailed data tables from .dados-detalhados")
+                                detailed_data = []
 
-                            detailed_section = detail_page.locator("section.dados-detalhados")
-                            tables = detailed_section.locator("table")
+                                detailed_section = detail_page.locator("section.dados-detalhados")
+                                tables = detailed_section.locator("table")
 
-                            for k in range(tables.count()):
-                                table = tables.nth(k)
-                                caption_el = table.locator("caption")
-                                caption = caption_el.inner_text().strip() if caption_el.count() else f"Tabela {k+1}"
+                                for k in range(tables.count()):
+                                    table = tables.nth(k)
+                                    caption_el = table.locator("caption")
+                                    caption = caption_el.inner_text().strip() if caption_el.count() else f"Tabela {k+1}"
 
-                                headers = []
-                                header_cells = table.locator("thead tr th")
-                                for h in range(header_cells.count()):
-                                    headers.append(header_cells.nth(h).inner_text().strip())
+                                    headers = []
+                                    header_cells = table.locator("thead tr th")
+                                    for h in range(header_cells.count()):
+                                        headers.append(header_cells.nth(h).inner_text().strip())
 
-                                rows_data = []
-                                body_rows = table.locator("tbody tr")
-                                for r in range(body_rows.count()):
-                                    row = body_rows.nth(r)
-                                    cells = row.locator("td")
-                                    row_dict = {}
-                                    for c in range(cells.count()):
-                                        key = headers[c] if c < len(headers) else f"coluna_{c+1}"
-                                        row_dict[key] = cells.nth(c).inner_text().strip()
-                                    rows_data.append(row_dict)
+                                    rows_data = []
+                                    body_rows = table.locator("tbody tr")
+                                    for r in range(body_rows.count()):
+                                        row = body_rows.nth(r)
+                                        cells = row.locator("td")
+                                        row_dict = {}
+                                        for c in range(cells.count()):
+                                            key = headers[c] if c < len(headers) else f"coluna_{c+1}"
+                                            row_dict[key] = cells.nth(c).inner_text().strip()
+                                        rows_data.append(row_dict)
 
-                                detailed_data.append({
-                                    "tabela": caption,
-                                    "dados": rows_data
+                                    detailed_data.append({
+                                        "tabela": caption,
+                                        "dados": rows_data
+                                    })
+
+                                benefit_data.append({
+                                    "valor_recebido": valor,
+                                    "detalhamento": detailed_data
                                 })
 
-                            benefit_data.append({
-                                "valor_recebido": valor,
-                                "detalhamento": detailed_data
-                            })
-
-                            detail_page.close()
+                                detail_page.close()
 
                 accordion_data[title] = benefit_data
+
 
             screenshot_bytes = page.screenshot(full_page=True)
             screenshot_base64 = base64.b64encode(screenshot_bytes).decode('utf-8')
