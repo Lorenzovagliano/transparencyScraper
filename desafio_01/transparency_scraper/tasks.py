@@ -93,13 +93,14 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
             page.locator("#button-consulta-pessoa-fisica").click(
                 timeout=max_interaction_timeout
             )
-            time.sleep(random.uniform(2, 3))
+            time.sleep(5)
 
             logger.info(f"Looking for filter: {search_filter}")
             if search_filter:
                 refine_button = page.locator("button.header:has-text('Refine a Busca')")
                 if refine_button.count():
                     refine_button.click()
+                    time.sleep(5)
                     page.wait_for_timeout(500)
 
                 filter_actions = {
@@ -146,6 +147,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                 if action_to_perform:
                     logger.info(f"Applying filter: {normalized_search_filter}")
                     action_to_perform()
+                    time.sleep(5)
                 else:
                     logger.warning(
                         f"No action defined for normalized search_filter: '{normalized_search_filter}' (original: '{search_filter}')"
@@ -156,7 +158,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                 "searchbox", name="Busque por Nome, Nis ou CPF ("
             )
             search_box.click(timeout=max_interaction_timeout)
-            time.sleep(random.uniform(2, 3))
+            time.sleep(5)
 
             logger.info(f"Typing up '{identifier}'")
             for char in f'"{identifier}"':
@@ -166,7 +168,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
             page.get_by_role(
                 "button", name="Enviar dados do formulário de busca"
             ).click(timeout=max_interaction_timeout)
-            time.sleep(random.uniform(2, 3))
+            time.sleep(5)
 
             logger.info(f"Clicking result for: {identifier}")
             try:
@@ -183,8 +185,10 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                         f"Multiple results found for identifier: {identifier}. Clicking the first one."
                     )
                     result_links.first.click(timeout=max_interaction_timeout)
+                    time.sleep(5)
                 else:
                     result_links.click(timeout=max_interaction_timeout)
+                    time.sleep(5)
             except PlaywrightTimeoutError:
                 logger.warning(f"No results found for identifier: {identifier}")
                 context.close()
@@ -218,10 +222,11 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                 "button", name="Recebimentos de recursos"
             )
             recebimentos_button.scroll_into_view_if_needed()
-            time.sleep(random.uniform(2, 3))
+            time.sleep(5)
 
             logger.info(f"Expanding benefits accordion")
             recebimentos_button.click(timeout=existence_check_timeout)
+            time.sleep(5)
 
             page.locator("#tabela-visao-geral-sancoes tbody tr").first.wait_for(
                 timeout=existence_check_timeout
@@ -267,6 +272,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                                     "https://portaldatransparencia.gov.br" + detail_url,
                                     timeout=max_interaction_timeout,
                                 )
+                                time.sleep(5)
 
                                 logger.info(
                                     "Scraping detailed data tables from .dados-detalhados"
@@ -334,6 +340,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                                             break
 
                                         next_button.click()
+                                        time.sleep(5)
                                         detail_page.wait_for_timeout(
                                             random.uniform(1000, 2000)
                                         )
