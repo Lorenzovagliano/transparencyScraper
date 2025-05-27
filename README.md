@@ -22,6 +22,24 @@ A aplicação oferece um endpoint RESTful que permite o envio de requisições `
 - **Celery**: Executor de tarefas assíncronas.
 - **Docker/Docker Compose**: Contêineres para ambiente padronizado e fácil execução.
 
+## Setup Local
+
+### Pré-requisitos
+
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+
+### Instruções
+
+1. Clone o repositório:
+
+2. Execute a aplicação com Docker Compose:
+   ```bash
+   docker-compose up
+   ```
+
+O serviço estará disponível em `http://localhost:8000`.
+
 ---
 
 ## Endpoint `/api/scrape-person/`
