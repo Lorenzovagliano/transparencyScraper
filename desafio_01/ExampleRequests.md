@@ -20,6 +20,17 @@ curl -X POST \
   }'
 ```
 
+## Inexistant person with filter
+```
+curl -X POST \
+  http://localhost:8000/api/scrape-person/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "identifier": "wasdasdasd,
+    "search_filter": "BENEFICIÁRIO DE PROGRAMA SOCIAL"
+  }'
+```
+
 ## Singular Person without filter:
 ```
 curl -X POST \
@@ -30,12 +41,32 @@ curl -X POST \
   }'
 ```
 
-## Multiple people with filter:
+## Multiple people without filter:
 ```
 curl -X POST \
   http://localhost:8000/api/scrape-person/ \
   -H 'Content-Type: application/json' \
   -d '{
     "identifier": "JOAO DA SILVA"
+  }'
+```
+
+## Inexistent person without filter:
+```
+curl -X POST \
+  http://localhost:8000/api/scrape-person/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "identifier": "Jwadasdasdasd"
+  }'
+```
+
+## Inexistent filter:
+```
+curl -X POST \
+  http://localhost:8000/api/scrape-person/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "identifier": "Jwadasdasdasd"
   }'
 ```
