@@ -127,9 +127,26 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
 
             logger.info(f"Clicking search button")
             page.get_by_role('button', name='Enviar dados do formulário de busca').click(timeout=max_interaction_timeout)
+            time.sleep(random.uniform(2, 3))
 
             logger.info(f"Clicking result for: {identifier}")
-            page.get_by_role("link", name=identifier).click(timeout=max_interaction_timeout)
+            try:
+                result_links = page.get_by_role("link", name=identifier)
+                if result_links.count() == 0:
+                    logger.warning(f"No results found for identifier: {identifier}")
+                    context.close()
+                    browser.close()
+                    return {"message": f"Foram encontrados 0 resultados para o termo {identifier}"}
+                elif result_links.count() > 1:
+                    logger.info(f"Multiple results found for identifier: {identifier}. Clicking the first one.")
+                    result_links.first.click(timeout=max_interaction_timeout)
+                else:
+                    result_links.click(timeout=max_interaction_timeout)
+            except PlaywrightTimeoutError:
+                logger.warning(f"No results found for identifier: {identifier}")
+                context.close()
+                browser.close()
+                return {"message": f"Foram encontrados 0 resultados para o termo {identifier}"}
 
             page.locator("section.dados-tabelados").wait_for(timeout=existence_check_timeout)
 
