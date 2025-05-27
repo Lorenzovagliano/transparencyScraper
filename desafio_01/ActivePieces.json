@@ -1,0 +1,220 @@
+﻿{
+  "created": "1748349098488",
+  "updated": "1748349098488",
+  "name": "Scraper",
+  "description": "",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-forms",
+    "@activepieces/piece-http",
+    "@activepieces/piece-google-drive",
+    "@activepieces/piece-google-sheets"
+  ],
+  "template": {
+    "displayName": "Scraper",
+    "trigger": {
+      "name": "trigger",
+      "valid": true,
+      "displayName": "Web Form",
+      "type": "PIECE_TRIGGER",
+      "settings": {
+        "pieceName": "@activepieces/piece-forms",
+        "pieceVersion": "0.4.2",
+        "pieceType": "OFFICIAL",
+        "packageType": "REGISTRY",
+        "input": {
+          "inputs": [
+            {
+              "type": "text",
+              "required": true,
+              "description": "",
+              "displayName": "identifier"
+            },
+            {
+              "type": "text",
+              "required": false,
+              "description": "",
+              "displayName": "search_filter"
+            }
+          ],
+          "waitForResponse": false
+        },
+        "inputUiInfo": {
+          "customizedInputs": {}
+        },
+        "triggerName": "form_submission"
+      },
+      "nextAction": {
+        "name": "step_1",
+        "skip": false,
+        "type": "PIECE",
+        "valid": true,
+        "settings": {
+          "input": {
+            "url": "https://desafio-most-production-production.up.railway.app/api/scrape-person/",
+            "body": {
+              "data": "{\n\"identifier\": \"{{trigger['identifier']}}\",\n\"search_filter\": \"{{trigger['search_filter']}}\"\n}"
+            },
+            "method": "POST",
+            "headers": {},
+            "authType": "NONE",
+            "failsafe": false,
+            "body_type": "raw",
+            "use_proxy": false,
+            "authFields": {},
+            "queryParams": {},
+            "proxy_settings": {}
+          },
+          "pieceName": "@activepieces/piece-http",
+          "pieceType": "OFFICIAL",
+          "actionName": "send_request",
+          "inputUiInfo": {
+            "schema": {
+              "body": {
+                "data": {
+                  "type": "LONG_TEXT",
+                  "required": true,
+                  "displayName": "Raw Body"
+                }
+              },
+              "authFields": {},
+              "proxy_settings": {}
+            },
+            "customizedInputs": {}
+          },
+          "packageType": "REGISTRY",
+          "pieceVersion": "0.7.0",
+          "errorHandlingOptions": {
+            "retryOnFailure": {
+              "value": false
+            },
+            "continueOnFailure": {
+              "value": false
+            }
+          }
+        },
+        "nextAction": {
+          "name": "step_2",
+          "skip": false,
+          "type": "PIECE",
+          "valid": true,
+          "settings": {
+            "input": {
+              "auth": "{{connections['T3BkvGOXsotFcDHwgfz0W']}}",
+              "text": "{{step_1['body']}}",
+              "fileName": "{{step_1['body']['task_id']}}.json",
+              "fileType": "plain/text",
+              "parentFolder": null,
+              "include_team_drives": false
+            },
+            "pieceName": "@activepieces/piece-google-drive",
+            "pieceType": "OFFICIAL",
+            "actionName": "create_new_gdrive_file",
+            "inputUiInfo": {
+              "customizedInputs": {}
+            },
+            "packageType": "REGISTRY",
+            "pieceVersion": "0.5.39",
+            "errorHandlingOptions": {
+              "retryOnFailure": {
+                "value": false
+              },
+              "continueOnFailure": {
+                "value": false
+              }
+            }
+          },
+          "nextAction": {
+            "name": "step_5",
+            "skip": false,
+            "type": "PIECE",
+            "valid": true,
+            "settings": {
+              "input": {
+                "auth": "{{connections['T3BkvGOXsotFcDHwgfz0W']}}",
+                "fileId": "{{step_2['id']}}"
+              },
+              "pieceName": "@activepieces/piece-google-drive",
+              "pieceType": "OFFICIAL",
+              "actionName": "set_public_access",
+              "inputUiInfo": {
+                "customizedInputs": {}
+              },
+              "packageType": "REGISTRY",
+              "pieceVersion": "0.5.39",
+              "errorHandlingOptions": {
+                "retryOnFailure": {
+                  "value": false
+                },
+                "continueOnFailure": {
+                  "value": false
+                }
+              }
+            },
+            "nextAction": {
+              "name": "step_4",
+              "skip": false,
+              "type": "PIECE",
+              "valid": true,
+              "settings": {
+                "input": {
+                  "auth": "{{connections['2qXyQp5ANWsSKXdk59NBI']}}",
+                  "values": {
+                    "values": [
+                      "{{step_1['body']['task_id']}}",
+                      "{{step_1['body']['result']['nome']}}",
+                      "{{step_1['body']['result']['cpf']}}",
+                      "{{step_1['body']['timestamp']}}",
+                      "{{step_5['downloadUrl']}}"
+                    ]
+                  },
+                  "sheetId": 0,
+                  "as_string": false,
+                  "spreadsheetId": "1DFn6mmRSj1dLlwgaJ5swvZlkvH5_imMZOm5d14WsJbg",
+                  "first_row_headers": false,
+                  "includeTeamDrives": false
+                },
+                "pieceName": "@activepieces/piece-google-sheets",
+                "pieceType": "OFFICIAL",
+                "actionName": "insert_row",
+                "inputUiInfo": {
+                  "schema": {
+                    "values": {
+                      "values": {
+                        "type": "ARRAY",
+                        "required": true,
+                        "displayName": "Values"
+                      }
+                    }
+                  },
+                  "customizedInputs": {}
+                },
+                "packageType": "REGISTRY",
+                "pieceVersion": "0.12.2",
+                "errorHandlingOptions": {
+                  "retryOnFailure": {
+                    "value": false
+                  },
+                  "continueOnFailure": {
+                    "value": false
+                  }
+                }
+              },
+              "displayName": "Insert Row"
+            },
+            "displayName": "Set public access"
+          },
+          "displayName": "Create new file"
+        },
+        "displayName": "Send HTTP request"
+      }
+    },
+    "valid": true,
+    "connectionIds": [
+      "T3BkvGOXsotFcDHwgfz0W",
+      "2qXyQp5ANWsSKXdk59NBI"
+    ],
+    "schemaVersion": "2"
+  },
+  "blogUrl": ""
+}
