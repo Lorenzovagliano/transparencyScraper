@@ -80,20 +80,19 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
 
             page.add_init_script(stealth_script)
 
-            time.sleep(random.uniform(2, 5))
             logger.info(f"Navigating to {url}")
             page.goto(url, timeout=max_interaction_timeout, wait_until='domcontentloaded')
-            time.sleep(random.uniform(3, 6))
 
+            logger.info(f"Clicking 'Consulta' buton")
             page.locator('#button-consulta-pessoa-fisica').click(timeout=max_interaction_timeout)
-            time.sleep(random.uniform(2, 4))
+            time.sleep(random.uniform(2, 3))
 
+            logger.info(f"Looking for filter: {search_filter}")
             if search_filter:
                 refine_button = page.locator("button.header:has-text('Refine a Busca')")
                 if refine_button.count():
                     refine_button.click()
                     page.wait_for_timeout(500)
-                time.sleep(random.uniform(2, 4))
 
                 filter_actions = {
                     normalize_string("Servidores e Pensionistas"): lambda: page.locator("#box-busca-refinada").get_by_text("Servidores e Pensionistas").click(),
@@ -116,34 +115,34 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                 else:
                     logger.warning(f"No action defined for normalized search_filter: '{normalized_search_filter}' (original: '{search_filter}')")
 
-                time.sleep(random.uniform(2, 4))
 
             logger.info(f"Searching for: '{identifier}'")
             search_box = page.get_by_role('searchbox', name='Busque por Nome, Nis ou CPF (')
             search_box.click(timeout=max_interaction_timeout)
-            time.sleep(random.uniform(1, 2))
+            time.sleep(random.uniform(2, 3))
 
+            logger.info(f"Typing up '{identifier}'")
             for char in f'"{identifier}"':
                 search_box.type(char, delay=random.uniform(50, 150))
-            time.sleep(random.uniform(1, 3))
 
+            logger.info(f"Clicking search button")
             page.get_by_role('button', name='Enviar dados do formulário de busca').click(timeout=max_interaction_timeout)
-            time.sleep(random.uniform(3, 5))
 
+            logger.info(f"Clicking result for: {identifier}")
             page.get_by_role("link", name=identifier).click(timeout=max_interaction_timeout)
-            time.sleep(random.uniform(3, 5))
 
             page.locator("section.dados-tabelados").wait_for(timeout=existence_check_timeout)
 
+            logger.info(f"Scraping person information")
             nome = page.locator("section.dados-tabelados strong:text('Nome') + span").inner_text().strip()
             cpf = page.locator("section.dados-tabelados strong:text('CPF') + span").inner_text().strip()
             localidade = page.locator("section.dados-tabelados strong:text('Localidade') + span").inner_text().strip()
 
-            time.sleep(random.uniform(3, 6))
-
             recebimentos_button = page.get_by_role("button", name="Recebimentos de recursos")
             recebimentos_button.scroll_into_view_if_needed()
-            time.sleep(random.uniform(1, 2))
+            time.sleep(random.uniform(2, 3))
+
+            logger.info(f"Expanding benefits accordion")
             recebimentos_button.click(timeout=existence_check_timeout)
 
             page.locator("#tabela-visao-geral-sancoes tbody tr").first.wait_for(timeout=existence_check_timeout)
@@ -153,6 +152,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
             benefit_blocks = page.locator("div#accordion1 div.br-table")
             block_count = benefit_blocks.count()
 
+            logger.info("Scraping tables")
             for i in range(block_count):
                 block = benefit_blocks.nth(i)
 
@@ -183,9 +183,7 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
                                 logger.info(f"Navigating to detail page: {detail_url}")
                                 detail_page = context.new_page()
                                 detail_page.add_init_script(stealth_script)
-                                time.sleep(random.uniform(2, 5))
                                 detail_page.goto("https://portaldatransparencia.gov.br" + detail_url, timeout=max_interaction_timeout)
-                                time.sleep(random.uniform(3, 6))
 
                                 logger.info("Scraping detailed data tables from .dados-detalhados")
                                 detailed_data = []
