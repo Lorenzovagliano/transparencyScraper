@@ -36,7 +36,7 @@ A aplicação oferece um endpoint RESTful que permite o envio de requisições `
 
 1. Clone o repositório:
 
-2. Vá para o diretório correto: `desafio-most-main/desafio_01`
+2. Vá para o diretório correto: `/desafio_01`
 
 3. Execute a aplicação com Docker Compose:
    ```bash
