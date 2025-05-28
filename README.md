@@ -8,7 +8,7 @@ A API está disponível em ambiente de produção:
 
 - Endpoint da API: https://desafio-most-production-production.up.railway.app/api/scrape-person/
 - [**Formulário**](https://cloud.activepieces.com/forms/wpP5G4LYeKKTxOgd900m5) via **ActivePieces**, que inicializa um workflow que gera um arquivo nessa [pasta](https://drive.google.com/drive/folders/1WiVVUHYE3gwL6Edw502S2g2UJ4GPhTIV?usp=sharing) do Google Drive e atualiza essa [tabela](https://docs.google.com/spreadsheets/d/1DFn6mmRSj1dLlwgaJ5swvZlkvH5_imMZOm5d14WsJbg/edit?usp=sharing) do Google Sheets.
-    - O template para este workflow também pode ser encontrado [localmente](https://github.com/Lorenzovagliano/desafio-most/blob/main/desafio_01/ActivePieces.json) ou no [ActivePieces](https://cloud.activepieces.com/templates/9MoIWskAIlpbPBqVMWWEt).
+    - O template para este workflow também pode ser encontrado localmente (`desafio_01/ActivePieces.json`) ou no [ActivePieces](https://cloud.activepieces.com/templates/9MoIWskAIlpbPBqVMWWEt).
 
 ---
 
