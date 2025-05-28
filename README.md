@@ -21,6 +21,7 @@ A aplicação oferece um endpoint RESTful que permite o envio de requisições `
 - **Django**: Framework web utilizado para construção da API.
 - **Playwright**: Ferramenta para automação de navegação web.
 - **Celery**: Executor de tarefas assíncronas.
+- **Poetry**: Gerenciamento de dependências para python.
 - **Docker/Docker Compose**: Contêineres para ambiente padronizado e fácil execução.
 
 ## Setup Local
