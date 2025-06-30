@@ -1,6 +1,7 @@
 import base64
 import logging
 import random
+import re
 import time
 import unicodedata
 
@@ -15,6 +16,15 @@ def normalize_string(text):
     normalized_text = unicodedata.normalize("NFKD", text)
     ascii_text = normalized_text.encode("ascii", "ignore").decode("utf-8")
     return ascii_text.casefold()
+
+
+def is_cpf_or_nis(identifier):
+    digits_only = re.sub(r'\D', '', identifier)
+    
+    if len(digits_only) == 11:
+        return True
+    
+    return False
 
 
 @shared_task(bind=True, max_retries=1)
@@ -172,23 +182,44 @@ def scrape_portal_data(self, identifier: str, search_filter: str = None):
 
             logger.info(f"Clicking result for: {identifier}")
             try:
-                result_links = page.get_by_role("link", name=identifier)
-                if result_links.count() == 0:
-                    logger.warning(f"No results found for identifier: {identifier}")
-                    context.close()
-                    browser.close()
-                    return {
-                        "message": f"Foram encontrados 0 resultados para o termo {identifier}"
-                    }
-                elif result_links.count() > 1:
-                    logger.info(
-                        f"Multiple results found for identifier: {identifier}. Clicking the first one."
-                    )
-                    result_links.first.click(timeout=max_interaction_timeout)
-                    time.sleep(5)
+                is_numeric_search = is_cpf_or_nis(identifier)
+                
+                if is_numeric_search:
+                    logger.info(f"Detected CPF/NIS search for: {identifier}")
+                    result_links = page.locator("a.link-busca-nome")
+                    
+                    if result_links.count() == 0:
+                        logger.warning(f"No results found for identifier: {identifier}")
+                        context.close()
+                        browser.close()
+                        return {
+                            "message": f"Foram encontrados 0 resultados para o termo {identifier}"
+                        }
+                    else:
+                        logger.info(f"Found {result_links.count()} result(s). Clicking the first one.")
+                        result_links.first.click(timeout=max_interaction_timeout)
+                        time.sleep(5)
                 else:
-                    result_links.click(timeout=max_interaction_timeout)
-                    time.sleep(5)
+                    logger.info(f"Detected name search for: {identifier}")
+                    result_links = page.get_by_role("link", name=identifier)
+                    
+                    if result_links.count() == 0:
+                        logger.warning(f"No results found for identifier: {identifier}")
+                        context.close()
+                        browser.close()
+                        return {
+                            "message": f"Foram encontrados 0 resultados para o termo {identifier}"
+                        }
+                    elif result_links.count() > 1:
+                        logger.info(
+                            f"Multiple results found for identifier: {identifier}. Clicking the first one."
+                        )
+                        result_links.first.click(timeout=max_interaction_timeout)
+                        time.sleep(5)
+                    else:
+                        result_links.click(timeout=max_interaction_timeout)
+                        time.sleep(5)
+                        
             except PlaywrightTimeoutError:
                 logger.warning(f"No results found for identifier: {identifier}")
                 context.close()
